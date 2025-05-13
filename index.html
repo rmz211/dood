@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мониторинг состояния ноутбуков</title>
+    <link rel="icon" href="/static/icon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: url("/static/background_1.jpg") no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        h1 {
+            color: #c12afd;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 3rem;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #login-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            animation: zoomIn 1s ease-out;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            width: 350px;
+        }
+
+        #login-form input[type="password"], #login-form select {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            outline: none;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        #login-form input[type="password"]:focus, #login-form select:focus {
+            border-color: #8a2be2;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+
+        #login-form button {
+            padding: 12px 24px;
+            font-size: 16px;
+            color: #fff;
+            background: linear-gradient(to right, #8a2be2, #6a1b9a);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        #login-form button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(to right, #7b1fa2, #8a2be2);
+        }
+
+        #error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        #content {
+            animation: fadeIn 1.5s ease-out;
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            padding: 12px 24px;
+            font-size: 16px;
+            color: #fff;
+            background: linear-gradient(to right, #00bcd4, #0097a7);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-clear {
+            background: linear-gradient(to right, #e74c3c, #f1948a);
+        }
+
+        .button-clear:hover {
+            background: linear-gradient(to right, #c0392b, #e74c3c);
+        }
+
+        .button-toggle {
+            background: linear-gradient(to right, #2ecc71, #58d68d);
+        }
+
+        .button-toggle:hover {
+            background: linear-gradient(to right, #27ae60, #2ecc71);
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px 0 0 10px;
+            outline: none;
+            width: 300px;
+        }
+
+        .search-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: linear-gradient(to right, #8a2be2, #6a1b9a);
+            border: none;
+            border-radius: 0 10px 10px 0;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-container button:hover {
+            background: linear-gradient(to right, #7b1fa2, #8a2be2);
+        }
+
+        .pinned-messages {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .pinned-messages h2 {
+            font-size: 1.5rem;
+            color: #8a2be2;
+            margin-bottom: 10px;
+        }
+
+        .pinned-messages textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            resize: none;
+            margin-bottom: 10px;
+        }
+
+        .pinned-messages button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: linear-gradient(to right, #8a2be2, #6a1b9a);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pinned-messages button:hover {
+            background: linear-gradient(to right, #7b1fa2, #8a2be2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: slideIn 1s ease-out;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #8a2be2;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        th:hover {
+            background-color: #7b1fa2;
+        }
+
+        th i {
+            margin-left: 5px;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        th.asc i {
+            transform: rotate(180deg);
+        }
+
+        tr {
+            transition: background-color 0.3s;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .temperature {
+            font-weight: bold;
+        }
+
+        .temperature.cool {
+            color: #2ecc71;
+        }
+
+        .temperature.warm {
+            color: #f1c40f;
+        }
+
+        .temperature.hot {
+            color: #e74c3c;
+        }
+
+        .low-battery {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        #about-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background: linear-gradient(to right, #8a2be2, #6a1b9a);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #about-button:hover {
+            background: linear-gradient(to right, #7b1fa2, #8a2be2);
+        }
+
+        #about-text {
+            position: fixed;
+            bottom: 70px;
+            left: 20px;
+            color: #fff;
+            font-size: 14px;
+            display: none;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #batteryChart {
+            width: 80%;
+            height: 300px;
+            margin: 20px 0;
+            animation: fadeIn 2s ease-in;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Мониторинг состояния ноутбуков</h1>
+
+    <!-- Форма для входа с паролем -->
+    <div id="login-form">
+        <select id="school">
+            <option value="school1">Школа 1</option>
+            <option value="school2">Школа 2</option>
+            <option value="school3">Школа 3</option>
+            <option value="school4">Школа 4</option>
+            <option value="school5">Школа 5</option>
+        </select>
+        <input type="password" id="password" placeholder="Введите пароль" onkeydown="if(event.key === 'Enter') checkPassword()">
+        <button onclick="checkPassword()">Войти</button>
+        <p id="error-message">Неверный пароль. Попробуйте снова.</p>
+    </div>
+
+    <!-- Контейнер с кнопками и таблицей -->
+    <div id="content" style="display: none;">
+        <div class="buttons">
+            <button class="button" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Обновить данные</button>
+            <button class="button button-clear" onclick="clearData()"><i class="fas fa-trash"></i> Очистить данные</button>
+            <button class="button button-toggle" onclick="toggleTable()"><i class="fas fa-table"></i> Свернуть таблицу</button>
+        </div>
+
+        <!-- Поиск -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Поиск по данным...">
+            <button onclick="searchData()"><i class="fas fa-search"></i> Поиск</button>
+        </div>
+
+        <!-- Закрепленные сообщения -->
+        <div class="pinned-messages">
+            <h2>Закрепленные сообщения</h2>
+            <textarea id="pinnedMessage" placeholder="Введите сообщение..."></textarea>
+            <button onclick="pinMessage()"><i class="fas fa-thumbtack"></i> Закрепить</button>
+        </div>
+
+        <!-- Таблица данных -->
+        <div id="laptopTableContainer">
+            <table id="laptopTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">ID Ноутбука <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(1)">Заряд (%) <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(2)">Состояние зарядки <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(3)">Время <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(4)">Температура процессора (°C) <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(5)">Скорость CPU (MHz) <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(6)">Использование памяти (%) <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(7)">Использование диска (%) <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(8)">Состояние сети <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(9)">Нагрузка на CPU (%) <i class="fas fa-sort"></i></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for laptop in laptops %}
+                    <tr>
+                        <td>{{ laptop.laptop_id }}</td>
+                        <td class="{{ 'low-battery' if laptop.battery_level < 30 else '' }}">{{ laptop.battery_level }}</td>
+                        <td>{{ "Заряжается" if laptop.charging_status else "Не заряжается" }}</td>
+                        <td>{{ laptop.last_on_time.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                        <td class="temperature {{ 'cool' if laptop.cpu_temperature <= 50 else 'warm' if laptop.cpu_temperature <= 70 else 'hot' }}">
+                            {{ laptop.cpu_temperature }}
+                        </td>
+                        <td>{{ laptop.cpu_speed }}</td>
+                        <td>{{ laptop.memory_usage }}</td>
+                        <td>{{ laptop.disk_usage }}</td>
+                        <td>{{ laptop.network_status }}</td>
+                        <td>{{ laptop.cpu_load }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <canvas id="batteryChart"></canvas>
+    </div>
+
+    <!-- Кнопка "О нас" -->
+    <button id="about-button" onclick="toggleAboutText()">О нас</button>
+    <div id="about-text">Проект сделан учениками ГБОУ Школы 1400 10-И класса Магомедкеримов Рамазан, Сухачев Данила и Раzваляев Егор</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const SCHOOL_PASSWORDS = {
+            "school1": "123",
+            "school2": "1234",
+            "school3": "12345",
+            "school4": "123456",
+            "school5": "1234567"
+        };
+
+        function checkPassword() {
+            const school = document.getElementById("school").value;
+            const enteredPassword = document.getElementById("password").value;
+            const content = document.getElementById("content");
+            const loginForm = document.getElementById("login-form");
+            const errorMessage = document.getElementById("error-message");
+
+            if (SCHOOL_PASSWORDS[school] === enteredPassword) {
+                sessionStorage.setItem('authenticated', 'true');
+                loginForm.style.display = "none";
+                content.style.display = "block";
+            } else {
+                errorMessage.style.display = "block";
+            }
+        }
+
+        window.onload = function() {
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                document.getElementById("login-form").style.display = "none";
+                document.getElementById("content").style.display = "block";
+            }
+        };
+
+        const batteryLevels = JSON.parse('{{ battery_levels_json | safe }}');
+        const ctx = document.getElementById('batteryChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: batteryLevels.length}, (_, i) => i + 1),
+                datasets: [{
+                    label: 'Уровень заряда (%)',
+                    data: batteryLevels,
+                    borderColor: '#8a2be2',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                }
+            }
+        });
+
+        let sortOrder = true;
+        function sortTable(colIndex) {
+            const table = document.getElementById("laptopTable").tBodies[0];
+            const rows = Array.from(table.rows);
+            const header = document.querySelector(`th:nth-child(${colIndex + 1})`);
+            header.classList.toggle('asc', sortOrder);
+
+            rows.sort((a, b) => {
+                const cellA = a.cells[colIndex].textContent.trim();
+                const cellB = b.cells[colIndex].textContent.trim();
+                const valA = isNaN(cellA) ? cellA : parseFloat(cellA);
+                const valB = isNaN(cellB) ? cellB : parseFloat(cellB);
+                return (valA > valB ? 1 : -1) * (sortOrder ? 1 : -1);
+            });
+            rows.forEach(row => table.appendChild(row));
+            sortOrder = !sortOrder;
+        }
+
+        async function clearData() {
+            document.querySelector('#laptopTable tbody').innerHTML = '';
+            await fetch('/clear-data', { method: 'POST' });
+        }
+
+        function toggleTable() {
+            const table = document.getElementById("laptopTableContainer");
+            if (table.style.display === "none") {
+                table.style.display = "block";
+            } else {
+                table.style.display = "none";
+            }
+        }
+
+        function searchData() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("#laptopTable tbody tr");
+
+            rows.forEach(row => {
+                const cells = row.getElementsByTagName("td");
+                let found = false;
+                for (let cell of cells) {
+                    if (cell.textContent.toLowerCase().includes(input)) {
+                        found = true;
+                        break;
+                    }
+                }
+                row.style.display = found ? "" : "none";
+            });
+        }
+
+        function pinMessage() {
+            const message = document.getElementById("pinnedMessage").value;
+            if (message.trim() !== "") {
+                alert(`Сообщение закреплено: ${message}`);
+                // Здесь можно добавить логику для сохранения закрепленного сообщения
+            } else {
+                alert("Введите сообщение для закрепления!");
+            }
+        }
+
+        function toggleAboutText() {
+            const aboutText = document.getElementById("about-text");
+            aboutText.style.display = aboutText.style.display === "none" ? "block" : "none";
+        }
+    </script>
+</body>
+</html>
